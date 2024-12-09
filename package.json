@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "node-telegram-bot-api": "^0.66.0"
+  },
+  "name": "axorarobot",
+  "version": "1.0.0",
+  "description": "An ultimate Telegram assistant Bot for group management and crypto insights",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
