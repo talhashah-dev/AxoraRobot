@@ -155,11 +155,80 @@ Need help? Use the buttons below to explore the bot's features or contact suppor
 });
 
 
+// bot.on("message", (msg) => {
+//   const chatId = msg.chat.id;
+//   if(msg.text != "/start") {
+//       bot.sendMessage(chatId, msg.text);
+//   } else {
+//     null
+//   }
+// });
+
+
+// Tagging Members
+let groupMembers = new Set();
+
 bot.on("message", (msg) => {
-  const chatId = msg.chat.id;
-  if(msg.text != "/start") {
-      bot.sendMessage(chatId, msg.text);
-  } else {
-   null
-  }
+    const chatId = msg.chat.id;
+
+    // Only store group chat members
+    if (msg.chat.type === "supergroup" || msg.chat.type === "group") {
+        const username = msg.from.username;
+        const name = username ? `@${username}` : msg.from.first_name;
+
+        groupMembers.add(name);
+    }
+});
+
+bot.onText(/\/tagall/, (msg) => {
+    const chatId = msg.chat.id;
+
+    if (groupMembers.size > 0) {
+        const mentionList = Array.from(groupMembers).join(" ");
+
+        bot.sendMessage(chatId, `📢 **Attention Everyone!**\n\n${mentionList}`, {
+            parse_mode: "Markdown",
+        });
+    } else {
+        bot.sendMessage(chatId, "No members to tag yet! Let them interact with the bot first.");
+    }
+});
+
+// Spam Blocker
+const bannedWords = ["spam", "http", "www", "ad"];
+
+bot.on("message", (msg) => {
+    const chatId = msg.chat.id;
+    const text = msg.text?.toLowerCase();
+
+    if (text) {
+        const containsBannedWord = bannedWords.some((word) => text.includes(word));
+
+        if (containsBannedWord) {
+            bot.deleteMessage(chatId, msg.message_id)
+                .then(() => console.log("Spam message deleted."))
+                .catch((error) => console.error("Failed to delete message:", error));
+        }
+    }
+});
+
+
+bot.on("message", (msg) => {
+    const chatId = msg.chat.id;
+    const text = msg.text;
+
+    if (text && (text.includes("http") || text.includes("www"))) {
+        // Check if the sender is an admin
+        bot.getChatAdministrators(chatId)
+            .then((admins) => {
+                const isAdmin = admins.some((admin) => admin.user.id === msg.from.id);
+
+                if (!isAdmin) {
+                    bot.deleteMessage(chatId, msg.message_id)
+                        .then(() => console.log("Link deleted."))
+                        .catch((error) => console.error("Failed to delete link:", error));
+                }
+            })
+            .catch((error) => console.error("Error checking admin status:", error));
+    }
 });
