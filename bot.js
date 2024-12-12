@@ -232,3 +232,60 @@ bot.on("message", (msg) => {
             .catch((error) => console.error("Error checking admin status:", error));
     }
 });
+
+// User Management
+// Ban a user
+bot.onText(/\/ban (.+)/, (msg, match) => {
+    const chatId = msg.chat.id;
+    const userToBan = match[1];
+
+    bot.kickChatMember(chatId, userToBan)
+        .then(() => bot.sendMessage(chatId, `User ${userToBan} has been banned.`))
+        .catch((error) => bot.sendMessage(chatId, `Failed to ban user: ${error.message}`));
+});
+
+// Unban a user
+bot.onText(/\/unban (.+)/, (msg, match) => {
+    const chatId = msg.chat.id;
+    const userToUnban = match[1];
+
+    bot.unbanChatMember(chatId, userToUnban)
+        .then(() => bot.sendMessage(chatId, `User ${userToUnban} has been unbanned.`))
+        .catch((error) => bot.sendMessage(chatId, `Failed to unban user: ${error.message}`));
+});
+
+// Mute a user
+bot.onText(/\/mute (.+) (\d+[smhd])/, (msg, match) => {
+    const chatId = msg.chat.id;
+    const userToMute = match[1];
+    const duration = match[2];
+
+    const seconds = convertToSeconds(duration);
+    
+    bot.restrictChatMember(chatId, userToMute, { until_date: Math.floor(Date.now() / 1000) + seconds })
+        .then(() => bot.sendMessage(chatId, `User ${userToMute} has been muted for ${duration}.`))
+        .catch((error) => bot.sendMessage(chatId, `Failed to mute user: ${error.message}`));
+});
+
+// Unmute a user
+bot.onText(/\/unmute (.+)/, (msg, match) => {
+    const chatId = msg.chat.id;
+    const userToUnmute = match[1];
+
+    bot.restrictChatMember(chatId, userToUnmute, { permissions: { can_send_messages: true } })
+        .then(() => bot.sendMessage(chatId, `User ${userToUnmute} has been unmuted.`))
+        .catch((error) => bot.sendMessage(chatId, `Failed to unmute user: ${error.message}`));
+});
+
+// Helper function to convert duration strings to seconds
+function convertToSeconds(duration) {
+    const time = parseInt(duration.slice(0, -1));
+    const unit = duration.slice(-1);
+    switch (unit) {
+        case 's': return time;
+        case 'm': return time * 60;
+        case 'h': return time * 3600;
+        case 'd': return time * 86400;
+        default: return 0;
+    }
+}
